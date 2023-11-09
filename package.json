@@ -5,9 +5,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": " tsc",
     "dev": "tsx watch main.ts",
-    "serve": "node main.js"
+    "start": "node dist/main.js"
   },
   "dependencies": {
     "@prisma/client": "^5.4.2",
