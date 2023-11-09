@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum StatusUser {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  full_name String
+  email String @unique
+  username String @unique
+  password String
+  phone_number String
+  profile_image String?
+  is_super_admin Boolean @default(false)
+  status StatusUser @default(ACTIVE)
+  role_id String? @map("role_id") @db.ObjectId
+  role Role? @relation(fields: [role_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+model Role {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  permissions Permission[]
+  users User[]
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+model Permission {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  role_id String @map("role_id") @db.ObjectId
+  role Role @relation(fields: [role_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+model GroupProduct {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  images String?
+  types TypeProduct[]
+}
+
+model TypeProduct {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  images String[]
+  price Int
+  group_id String @map("group_id") @db.ObjectId
+  group GroupProduct @relation(fields: [group_id], references: [id])
+  items ItemProduct[]
+  reservations Reservation[]
+}
+
+enum StatusItemProduct {
+  DIRTY
+  AVAILABLE
+  NOT_AVAILABLE
+  ON_RESERVATION
+  ON_RENTAL
+  ON_MAINTENANCE
+  ON_CLEANING
+}
+
+model ItemProduct {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  images String[]
+  type_id String @map("type_id") @db.ObjectId
+  types TypeProduct @relation(fields: [type_id], references: [id])
+  orders Order[]
+  reservations Reservation[]
+  status StatusItemProduct @default(AVAILABLE)
+}
+
+model Customer {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  full_name String
+  email String?
+  phone_code String
+  phone_number String
+  address String
+  identity_card_image String
+  profile_image String?
+  status StatusUser @default(ACTIVE)
+  password String? @default("")
+  orders Order[]
+  reservations Reservation[]
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+enum StatusOrder {
+  CANCELLED
+  ON_RESERVATION
+  ON_PROGRESS
+  COMPLETED
+}
+
+enum TypePickupReservationOrder {
+  PICKUP
+  DELIVERY
+}
+
+model Order {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  customer_id String @map("customer_id") @db.ObjectId
+  customer Customer @relation(fields: [customer_id], references: [id])
+  status StatusOrder @default(ON_RESERVATION)
+  type_pickup TypePickupReservationOrder @default(PICKUP)
+  item_id String @map("item_id") @db.ObjectId
+  item ItemProduct @relation(fields: [item_id], references: [id])
+  start_date DateTime
+  end_date DateTime
+  amount Int
+  payment_method String
+  images_payment String[]
+  images_customer_proof String[]
+  address_delivery String?
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+enum StatusReservation {
+  CANCELLED
+  PENDING
+  READY_TO_PICKUP
+  ON_PROGRESS
+}
+
+enum StatusPayment {
+  UNPAID
+  DOWN_PAYMENT
+  PAID
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+}
+
+model Reservation {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  code String
+  customer_id String @map("customer_id") @db.ObjectId
+  customer Customer @relation(fields: [customer_id], references: [id])
+  status StatusReservation @default(PENDING)
+  type_pickup TypePickupReservationOrder @default(PICKUP)
+  item_id String? @map("item_id") @db.ObjectId
+  item ItemProduct? @relation(fields: [item_id], references: [id])
+  type_id String @map("type_id") @db.ObjectId
+  type TypeProduct @relation(fields: [type_id], references: [id])
+  is_auto_select_item Boolean @default(false)
+  start_date DateTime
+  end_date DateTime
+  amount Int
+  price Int
+  status_payment StatusPayment @default(UNPAID)
+  down_payment Int @default(0)
+  payment_method PaymentMethod @default(CASH)
+  images_payment String[]
+  images_customer_proof String[]
+  address_delivery String?
+  created_at DateTime @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+
+
+
